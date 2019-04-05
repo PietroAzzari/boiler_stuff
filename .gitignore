@@ -34,3 +34,7 @@
 
 # Build directory
 build/
+.vscode/
+.kdev4/
+
+*.kdev4

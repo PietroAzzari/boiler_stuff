@@ -18,6 +18,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 include(ConfigSafeGuards)
 include(Colors)
 
+add_definitions(-DDNN_USE_IMAGE_API)
+add_definitions(-DCNN_USE_SSE)
+add_definitions(-DCNN_USE_AVX)
 
 # --------------------------------------------------------------------------------
 #                         Locate files (change as needed).
@@ -43,8 +46,19 @@ target_include_directories(engine
 
 # Add an executable for the file main.cpp, here called main.x.
 # If you add more executables, copy these lines accordingly.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+include_directories(/home/pazzari/Documents/GitHub/tiny-dnn)
+
 add_executable(main.x app/main.cpp)   # Name of exec. and location of file.
-target_link_libraries(main.x PRIVATE engine)  # Link the executable to `engine` (if it uses it).
+target_link_libraries(main.x PRIVATE engine Threads::Threads)  # Link the executable to `engine` (if it uses it).
+
+add_executable(train_LeNet app/train_LeNet98.cpp)   # Name of exec. and location of file.
+target_link_libraries(train_LeNet PRIVATE engine Threads::Threads)  # Link the executable to `engine` (if it uses it).
+
+add_executable(test_LeNet app/test_LeNet98.cpp)   # Name of exec. and location of file.
+target_link_libraries(test_LeNet PRIVATE engine Threads::Threads)  # Link the executable to `engine` (if it uses it).
 
 # Set the compile options you want, possibly depending on compiler (change as needed).
 # Do similar for the executables if you wish to set options for them as well.
@@ -57,12 +71,33 @@ target_compile_options(engine PRIVATE
                            "/Wall" >
 )
 
+# Unix
+if(CMAKE_COMPILER_IS_GNUCXX OR MINGW OR
+   CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#     check_cxx_compiler_flag("-msse3" COMPILER_HAS_SSE_FLAG)
+#     check_cxx_compiler_flag("-mavx"  COMPILER_HAS_AVX_FLAG)
+#         
+#     if(COMPILER_HAS_SSE_FLAG)
+        set(EXTRA_C_FLAGS "${EXTRA_C_FLAGS} -msse3")
+#     endif(COMPILER_HAS_SSE_FLAG)
+#     if(COMPILER_HAS_AVX_FLAG)
+        set(EXTRA_C_FLAGS "${EXTRA_C_FLAGS} -mavx")
+#     endif(COMPILER_HAS_AVX_FLAG)
+endif()
 # Set the properties you require, e.g. what C++ standard to use (change as needed).
-set_target_properties(engine main.x PROPERTIES 
-    CXX_STANDARD 17 
+set_target_properties(engine PROPERTIES 
+    CXX_STANDARD 14 
     CXX_STANDARD_REQUIRED YES 
     CXX_EXTENSIONS NO
 )
+
+set_target_properties(main.x train_LeNet test_LeNet PROPERTIES 
+    CXX_STANDARD 14 
+    CXX_STANDARD_REQUIRED YES 
+    CXX_EXTENSIONS YES
+)
+
+set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} ${EXTRA_C_FLAGS}")
 
 # --------------------------------------------------------------------------------
 #                         Make Tests (no change needed).
