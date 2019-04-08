@@ -22,6 +22,13 @@ add_definitions(-DDNN_USE_IMAGE_API)
 add_definitions(-DCNN_USE_SSE)
 add_definitions(-DCNN_USE_AVX)
 
+find_package(OpenCV 3.2 REQUIRED PATHS "/home/pazzari/opencv-3.4.3-install/usr/local/share/OpenCV")
+
+MESSAGE(STATUS "OpenCV library status:")
+MESSAGE(STATUS "    version: ${OpenCV_VERSION}")
+MESSAGE(STATUS "    libraries: ${OpenCV_LIBS}")
+MESSAGE(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+
 # --------------------------------------------------------------------------------
 #                         Locate files (change as needed).
 # --------------------------------------------------------------------------------
@@ -49,7 +56,7 @@ target_include_directories(engine
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-include_directories(/home/pazzari/Documents/GitHub/tiny-dnn)
+include_directories(/home/pazzari/Documents/GitHub/tiny-dnn OpenCV_INCLUDE_DIRS)
 
 add_executable(main.x app/main.cpp)   # Name of exec. and location of file.
 target_link_libraries(main.x PRIVATE engine Threads::Threads)  # Link the executable to `engine` (if it uses it).
@@ -59,6 +66,12 @@ target_link_libraries(train_LeNet PRIVATE engine Threads::Threads)  # Link the e
 
 add_executable(test_LeNet app/test_LeNet98.cpp)   # Name of exec. and location of file.
 target_link_libraries(test_LeNet PRIVATE engine Threads::Threads)  # Link the executable to `engine` (if it uses it).
+
+add_executable(videoIO app/videoIO.cpp)   # Name of exec. and location of file.
+target_link_libraries(videoIO PRIVATE engine ${OpenCV_LIBS})
+
+add_executable(videoProc app/videoProc.cpp)   # Name of exec. and location of file.
+target_link_libraries(videoProc PRIVATE engine ${OpenCV_LIBS})
 
 # Set the compile options you want, possibly depending on compiler (change as needed).
 # Do similar for the executables if you wish to set options for them as well.
